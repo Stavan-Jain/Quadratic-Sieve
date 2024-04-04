@@ -16,11 +16,8 @@ class QuadraticSieve:
     
     #TODO: Stavan
     def find_nullspace(self):
-        return 4
+        return 
 
     #TODO: Prerana
     def basic_principle(self):
         return False
-
-Sieve = QuadraticSieve(10)
-print(Sieve.find_nullspace())
