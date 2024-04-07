@@ -5,7 +5,8 @@ class QuadraticSieve:
     
     def __init__(self, n):
         self.n = n
-        self.matrix = []
+        self.matrix = np.array([])
+    
     def gen_primes(self, limit):
         primes = [2]
         i=3
@@ -29,7 +30,6 @@ class QuadraticSieve:
             factors[0] = -1
         return factors
 
-    #TODO: Jack
     def find_bsmooth(self, B):
         primes = self.gen_primes(B)
         sq = int(math.sqrt(self.n))
@@ -40,7 +40,10 @@ class QuadraticSieve:
             factors = self.factor_with_base(primes, current)
             if factors[0] == 1:
                 factors[0] = temp
-                self.matrix.append(factors)
+                if len(self.matrix) == 0:
+                    self.matrix = np.array([factors])
+                else:
+                    self.matrix = np.append(self.matrix, [factors], axis=0)
             print(self.matrix)
             i += 1
         return 
