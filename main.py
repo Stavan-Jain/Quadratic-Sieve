@@ -15,7 +15,7 @@ class QuadraticSieve:
     def get_B(self):
         return 
     
-    #TODO: Stavan
+    #returns two arrays A and B. A[i]**2 is congruent to B[i]**2 mod n for all i. 
     def find_linear_dependency_mod_2(self, M, v, factor_base):
         A = M % 2 != 0   # reducing the matrix mod 2 (True = 1, False = 0)
         m , n = np.shape(A)
@@ -27,6 +27,7 @@ class QuadraticSieve:
         linear_combinations = dict()    #dictionary to keep track of row operations
         for i in range(m):
             linear_combinations[i] = [v[i], [v[i]]]
+        #this section computes the Row Echelon form of A while keeping track of row operations in `linear_combinations`
         while h < m and k < n:
             i_max = np.argmax(np.abs(A[h:, k])) + h      #getting the index of pivot column
             if not A[i_max][k]:                #if there is not pivot in this column, move to the next one
@@ -42,26 +43,28 @@ class QuadraticSieve:
                         A[i] = np.logical_xor(A[i], A[h]) # updating rows so that there are 0s under the pivot entry 
                 h += 1
                 k += 1
+
+        #in the Reduced Echelon Form A of M, find the 0 rows (i.e. True not in row A[i]) and for each such row, 
+        #store the linear combination of rows that yield 0 in `linear_dependencies`
         linear_dependencies = []
         for i in range(m):
             if True not in A[i]:
                 linear_dependencies.append(filter_array(linear_combinations[i][1]))
 
         B = []
+        #for each linear dependency, compute the corresponding product of prime powers (mod n) and store in an array B
         for dependency in linear_dependencies:
             indices = []
-            b = 1
             for k in dependency:
-                indices.append(np.where(v == k)[0])
+                indices.append(np.where(v == k)[0])  #finding indices corresponding to B-smooth numbers
             prime_exp = sum([M[i]for i in indices])[0]
-            prime_exp = np.array([int(prime / 2) for prime in prime_exp])
-            print(prime_exp)
-            for i in range(n):
-                b *= factor_base[i]**prime_exp[i]
-
-            print(b % self.n)
+            prime_exp = prime_exp // 2
+            b = np.prod(factor_base**prime_exp) #computing product of prime powers
             B.append(b % self.n)
-        A = [np.prod(arr) % self.n for arr in linear_dependencies]
+
+        #for each linear dependency, compute the product of the B-smooth numbers (mod n) and store in an array A
+        A = [np.prod(arr) % self.n for arr in linear_dependencies] 
+        
         return A, B
 
     #TODO: Prerana
