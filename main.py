@@ -13,7 +13,7 @@ class QuadraticSieve:
     
     def get_B(self):
         B = np.exp((1/2)*math.sqrt(math.log(self.n)*math.log(math.log(self.n))))
-        return B
+        return math.ceil(B)
     
     #TODO: Stavan
     def find_nullspace(self):
