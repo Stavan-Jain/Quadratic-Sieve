@@ -12,7 +12,7 @@ class QuadraticSieve:
     
     #TODO: Prerana
     def get_B(self):
-        return 
+        return 5
     
     #TODO: Stavan
     def find_nullspace(self):
