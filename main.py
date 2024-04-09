@@ -8,6 +8,7 @@ class QuadraticSieve:
         self.n = n
         self.matrix = np.array([])
         self.bsmooth = np.array([])
+        self.factor_base = np.array([])
     
     def gen_primes(self, limit):
         primes = [2]
@@ -20,6 +21,7 @@ class QuadraticSieve:
             if is_prime:
                 primes.append(i)
             i += 1
+        self.factor_base = np.array(primes)
         return primes
 
     def factor_with_base(self, base, target):
@@ -113,3 +115,19 @@ class QuadraticSieve:
             return False
         else: 
             return math.gcd(abs(a-b), self.n)
+    
+    #driver code
+    def find_prime_factor(self):
+        B = self.get_B()
+        self.find_bsmooth(B)
+        self.gen_primes(limit=B)
+        A, B = Sieve.find_linear_dependency_mod_2(Sieve.matrix, Sieve.bsmooth, Sieve.factor_base)
+        ret = []
+        for i in range(len(A)):
+            ret.append(Sieve.basic_principle(A[i], B[i]))
+        return ret
+
+        
+Sieve = QuadraticSieve(3837523)
+print(Sieve.find_prime_factor())
+
