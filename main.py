@@ -1,6 +1,5 @@
 import numpy as np
 from utils import *
-
 import math 
 
 class QuadraticSieve:
@@ -8,6 +7,7 @@ class QuadraticSieve:
     def __init__(self, n):
         self.n = n
         self.matrix = np.array([])
+        self.bsmooth = np.array([])
     
     def gen_primes(self, limit):
         primes = [2]
@@ -23,14 +23,15 @@ class QuadraticSieve:
         return primes
 
     def factor_with_base(self, base, target):
-        factors = [target] + [0] * len(base)
+        temp = target
+        factors = [0] * len(base)
         for count, prime in enumerate(base):
-            while (factors[0] % int(prime)) == 0:
-                factors[0] = int(factors[0] / prime)
-                factors[count+1] += 1
-        if factors[0] != 1:
-            factors[0] = -1
-        return factors
+            while (temp % int(prime)) == 0:
+                temp = int(temp / prime)
+                factors[count] += 1
+        if temp != 1:
+            temp = -1
+        return temp, factors
 
     def find_bsmooth(self, B):
         primes = self.gen_primes(B)
@@ -39,13 +40,14 @@ class QuadraticSieve:
         while len(self.matrix) <= len(primes):
             temp = sq + i
             current = ((temp)**2) % self.n
-            factors = self.factor_with_base(primes, current)
-            if factors[0] == 1:
-                factors[0] = temp
+            factored, factors = self.factor_with_base(primes, current)
+            if factored == 1:
                 if len(self.matrix) == 0:
                     self.matrix = np.array([factors])
+                    self.bsmooth = np.array(temp)
                 else:
                     self.matrix = np.append(self.matrix, [factors], axis=0)
+                    self.bsmooth = np.append(self.bsmooth, temp)
             i += 1
         return 
     
@@ -111,5 +113,3 @@ class QuadraticSieve:
             return False
         else: 
             return math.gcd(abs(a-b), self.n)
-
-
