@@ -44,7 +44,6 @@ class QuadraticSieve:
                     self.matrix = np.array([factors])
                 else:
                     self.matrix = np.append(self.matrix, [factors], axis=0)
-            print(self.matrix)
             i += 1
         return 
     
@@ -61,4 +60,5 @@ class QuadraticSieve:
         return False
     
 x = QuadraticSieve(1649)
-print(x.find_bsmooth(12))
+x.find_bsmooth(12)
+print(x.matrix)
