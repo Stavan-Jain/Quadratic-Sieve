@@ -1,4 +1,5 @@
 import numpy as np
+import math 
 
 class QuadraticSieve:
     
@@ -10,14 +11,16 @@ class QuadraticSieve:
     def find_bsmooth(self, B):
         return 
     
-    #TODO: Prerana
     def get_B(self):
-        return 
+        B = np.exp((1/2)*math.sqrt(math.log(self.n)*math.log(math.log(self.n))))
+        return math.ceil(B)
     
     #TODO: Stavan
     def find_nullspace(self):
         return 
 
-    #TODO: Prerana
-    def basic_principle(self):
-        return False
+    def basic_principle(self, a, b):
+        if((a-b)%self.n==0 or (a+b)%self.n==0 or (b-a)%self.n==0):
+            return False
+        else: 
+            return math.gcd(abs(a-b), self.n)
