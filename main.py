@@ -1,4 +1,5 @@
 import numpy as np
+import math 
 
 class QuadraticSieve:
     
@@ -12,7 +13,8 @@ class QuadraticSieve:
     
     #TODO: Prerana
     def get_B(self):
-        return
+        B = np.exp((1/2)*math.sqrt(math.log(self.n)*math.log(math.log(self.n))))
+        return B
     
     #TODO: Stavan
     def find_nullspace(self):
