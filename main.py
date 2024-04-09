@@ -11,7 +11,6 @@ class QuadraticSieve:
     def find_bsmooth(self, B):
         return 
     
-    #TODO: Prerana
     def get_B(self):
         B = np.exp((1/2)*math.sqrt(math.log(self.n)*math.log(math.log(self.n))))
         return B
@@ -20,6 +19,8 @@ class QuadraticSieve:
     def find_nullspace(self):
         return 
 
-    #TODO: Prerana
-    def basic_principle(self):
-        return False
+    def basic_principle(self, a, b):
+        if((a-b)%self.n==0 or (a+b)%self.n==0 or (b-a)%self.n==0):
+            return False
+        else: 
+            return math.gcd(abs(a-b), self.n)
