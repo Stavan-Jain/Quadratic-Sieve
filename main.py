@@ -121,13 +121,16 @@ class QuadraticSieve:
         B = self.get_B()
         self.find_bsmooth(B)
         self.gen_primes(limit=B)
-        A, B = Sieve.find_linear_dependency_mod_2(Sieve.matrix, Sieve.bsmooth, Sieve.factor_base)
+        print(self.matrix)
+        print(self.bsmooth)
+        print()
+        A, B = self.find_linear_dependency_mod_2(self.matrix, self.bsmooth, self.factor_base)
         ret = []
         for i in range(len(A)):
-            ret.append(Sieve.basic_principle(A[i], B[i]))
+            ret.append(self.basic_principle(A[i], B[i]))
         return ret
 
         
-Sieve = QuadraticSieve(3837523)
+Sieve = QuadraticSieve(77340247)
 print(Sieve.find_prime_factor())
 
