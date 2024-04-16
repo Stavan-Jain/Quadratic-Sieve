@@ -9,7 +9,13 @@ class QuadraticSieve:
         self.matrix = np.array([])
         self.bsmooth = np.array([])
         self.factor_base = np.array([])
-    
+
+    def eulers_criterion(self, primes):
+        for p in primes: 
+            if((self.n**(int((p-1)/2)))%p == p-1):
+                primes.remove(p)
+        return primes
+
     def gen_primes(self, limit):
         primes = [2]
         i=3
@@ -130,4 +136,5 @@ class QuadraticSieve:
         
 Sieve = QuadraticSieve(3837523)
 print(Sieve.find_prime_factor())
+
 
