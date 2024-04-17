@@ -88,8 +88,9 @@ class QuadraticSieve:
     def tonelli_repeated(self, square, prime, prime_power):
         old_mod = prime ** (prime_power - 1)
         new_relations = set()
-        for x_k in self.tonelli_relations[prime][prime_power - 1]:
-            y_k = self.find_inverse(2 * x_k, old_mod)
+        for relation in self.tonelli_relations[prime][prime_power - 1]:
+            x_k = int(relation)
+            y_k = int(self.find_inverse(2 * x_k, old_mod))
             x_next = (x_k - ((x_k ** 2) - square) * y_k) % (old_mod * prime)
             new_relations.add(x_next)
         new_relations = list(new_relations)
@@ -338,9 +339,9 @@ class QuadraticSieve:
 
 #Sieve = QuadraticSieve(3837523)       
 #Sieve = QuadraticSieve(77340247)
-Sieve = QuadraticSieve(100109*100271)
+#Sieve = QuadraticSieve(100109*100271)
 #Sieve = QuadraticSieve(100109* 386429)
-#Sieve = QuadraticSieve(100271* 5009317 )
+Sieve = QuadraticSieve(100271* 5009317 )
 #Sieve = QuadraticSieve(10023234*12345679)
 #Sieve = QuadraticSieve(310248241 * 383838383)
 #Sieve = QuadraticSieve(16921456439215439701)
