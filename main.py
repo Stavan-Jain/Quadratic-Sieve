@@ -17,7 +17,27 @@ class QuadraticSieve:
         self.lincombs = dict()
         self.tonelli_relations = dict({})
 
-    
+
+     
+    def mod_exponentiation(self, y, p):
+        z = 1 
+        x = self.n % p
+        
+        while (y > 0):
+            if (y & 1):
+                z = (z * x) % p
+
+            y = y >> 1 
+            x = (x * x) % p
+        return z
+
+    def eulers_criterion(self, primes):
+        for p in primes: 
+            if((self.n**(int((p-1)/2)))%p == p-1):
+            # if(mod_exponentiation((int((p-1)/2)),p)):
+                primes.remove(p)
+        return primes
+
     def gen_primes(self, limit):
         primes = [2]
         i=3
