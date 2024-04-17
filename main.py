@@ -16,8 +16,6 @@ class QuadraticSieve:
         self.old_bsmooth = None
         self.lincombs = dict()
         self.tonelli_relations = dict({})
-
-
      
     def mod_exponentiation(self, y, p):
         z = 1 
@@ -106,8 +104,6 @@ class QuadraticSieve:
         power = 0
         k = 1
         m = int((prime - 1) / 2)
-        if self.fast_powers(a, m, prime) != 1:
-            return (-1, -1)
         if prime == 2:
             return self.tonelli_2(square, prime, prime_power)
         if prime_power > 1:
@@ -202,7 +198,7 @@ class QuadraticSieve:
         return -1, factors
 
     def find_bsmooth(self, B, tonelli=True):
-        primes = self.gen_primes(B)
+        primes = self.eulers_criterion(self.gen_primes(B))
         print("Done generating primes")
         sq = int(math.sqrt(self.n))
         i = 1
@@ -343,11 +339,11 @@ class QuadraticSieve:
 
 #Sieve = QuadraticSieve(3837523)       
 #Sieve = QuadraticSieve(77340247)
-#Sieve = QuadraticSieve(100109*100271)
+Sieve = QuadraticSieve(100109*100271)
 #Sieve = QuadraticSieve(100109* 386429)
 #Sieve = QuadraticSieve(100271* 5009317 )
 #Sieve = QuadraticSieve(10023234*12345679)
-Sieve = QuadraticSieve(310248241 * 383838383)
+#Sieve = QuadraticSieve(310248241 * 383838383)
 #Sieve = QuadraticSieve(16921456439215439701)
 #Sieve = QuadraticSieve(384869498225059)
-print(Sieve.find_prime_factor())
+print(Sieve.find_prime_factor(tonelli=False))
