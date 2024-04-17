@@ -26,6 +26,7 @@ class QuadraticSieve:
     def eulers_criterion(self, primes):
         for p in primes: 
             if((self.n**(int((p-1)/2)))%p == p-1):
+            # if(mod_exponentiation((int((p-1)/2)),p)):
                 primes.remove(p)
         return primes
 
