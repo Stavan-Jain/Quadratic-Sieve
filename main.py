@@ -321,28 +321,30 @@ class QuadraticSieve:
     def basic_principle(self, a, b):
         #print(type(a), type(b))
         if((a-b)%self.n==0 or (a+b)%self.n==0):
-            return False
+            return 1
         else: 
             return math.gcd(abs(a-b), self.n)
     
     #driver code
     def find_prime_factor(self, tonelli=True):
-        B = self.get_B()
-        self.find_bsmooth(B, tonelli)
-        A, C = self.find_congruent_squares(self.matrix, self.bsmooth, self.factor_base)
         ret = []
-        for i in range(len(A)):
-            j = self.basic_principle(A[i], C[i])
-            ret.append(j)
+        while len(ret) == 0:
+            B = self.get_B()
+            self.find_bsmooth(B, tonelli)
+            A, C = self.find_congruent_squares(self.matrix, self.bsmooth, self.factor_base)
+            for i in range(len(A)):
+                j = self.basic_principle(A[i], C[i])
+                if j > 1:
+                    ret.append(j)
         return ret
 
 #Sieve = QuadraticSieve(3837523)       
 #Sieve = QuadraticSieve(77340247)
-Sieve = QuadraticSieve(100109*100271)
-#Sieve = QuadraticSieve(100109* 386429)
+#Sieve = QuadraticSieve(100109*100271)
+Sieve = QuadraticSieve(100109* 386429)
 #Sieve = QuadraticSieve(100271* 5009317 )
 #Sieve = QuadraticSieve(10023234*12345679)
 #Sieve = QuadraticSieve(310248241 * 383838383)
 #Sieve = QuadraticSieve(16921456439215439701)
 #Sieve = QuadraticSieve(384869498225059)
-print(Sieve.find_prime_factor(tonelli=True))
+print(Sieve.find_prime_factor(tonelli=False))
