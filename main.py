@@ -55,7 +55,7 @@ class QuadraticSieve:
     
     def get_B(self):
         B = np.exp((1/2)*math.sqrt(math.log(self.n)*math.log(math.log(self.n))))
-        return math.ceil(B)
+        return math.ceil(B) 
     
 
     #returns two arrays A and B. A[i]**2 is congruent to B[i]**2 mod n for all i. 
@@ -103,17 +103,19 @@ class QuadraticSieve:
             prime_exp = sum([M[i]for i in indices])[0]
             prime_exp = prime_exp // 2
             b = np.prod(factor_base**prime_exp) #computing product of prime powers
-            B.append(b % self.n)
+            # .item() converts np.int64 to int
+            B.append(b.item() % self.n)
 
         #for each linear dependency, compute the product of the B-smooth numbers (mod n) and store in an array A
-        A = [np.prod(arr) % self.n for arr in linear_dependencies] 
+        A = [np.prod(arr).item() % self.n for arr in linear_dependencies]  
         
         return A, B
 
     def basic_principle(self, a, b):
         if((a-b)%self.n==0 or (a+b)%self.n==0):
-            return False
+            return 1
         else: 
+            #print(type(a), type(b))
             return math.gcd(abs(a-b), self.n)
     
     #driver code
@@ -121,16 +123,23 @@ class QuadraticSieve:
         B = self.get_B()
         self.find_bsmooth(B)
         self.gen_primes(limit=B)
-        print(self.matrix)
-        print(self.bsmooth)
-        print()
+        #print(self.matrix)
+        #print("bsmooth numbers: {}".format(self.bsmooth))
+        #print("factor base: {}".format(self.factor_base))
         A, B = self.find_linear_dependency_mod_2(self.matrix, self.bsmooth, self.factor_base)
         ret = []
         for i in range(len(A)):
-            ret.append(self.basic_principle(A[i], B[i]))
+            j = self.basic_principle(A[i], B[i])
+            if j > 1:
+                ret.append(j)
         return ret
 
         
 Sieve = QuadraticSieve(77340247)
+#Sieve = QuadraticSieve(100109*100271)
+#Sieve = QuadraticSieve(100109* 386429)
+#Sieve = QuadraticSieve(100271* 5009317 )
+#Sieve = QuadraticSieve(16921456439215439701)
+#Sieve = QuadraticSieve(384869498225059)
 print(Sieve.find_prime_factor())
 
