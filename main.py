@@ -1,6 +1,7 @@
 import numpy as np
 from utils import *
 import math 
+import time
 
 class QuadraticSieve:
     
@@ -9,11 +10,12 @@ class QuadraticSieve:
         self.matrix = np.array([])
         self.bsmooth = np.array([])
         self.factor_base = np.array([])
+        self.tonelli_relations = dict({})
     
     def gen_primes(self, limit):
         primes = [2]
         i=3
-        while i < limit:
+        while i <= limit:
             is_prime = True
             for p in primes:
                 if i % p == 0:
@@ -35,14 +37,158 @@ class QuadraticSieve:
             temp = -1
         return temp, factors
 
-    def find_bsmooth(self, B):
+    def tonelli_2(self, square, prime, prime_power):
+        if prime_power == 1:
+            if square % prime == 1:
+                return (1, 1)
+            return (-1, -1)
+        if prime_power == 2:
+            if square % (prime ** prime_power) == 1:
+                return (1, 3)
+            return (-1, -1)
+        if prime_power == 3:
+            if square % 8 != 1:
+                return (-1, -1)
+            return (1, 3, 5, 7)
+        new_relations = []
+        mod = 2 << (prime_power - 1)
+        for relation in self.tonelli_relations[prime][prime_power-1]:
+            indicator = ((relation ** 2) - square) >> (prime_power - 1)
+            if indicator % 2 == 0:
+                new_relations.append(relation % mod)
+            else:
+                new_relations.append((relation + (2 << (prime_power - 3))) % mod)
+        new_relations = new_relations + [mod - relation for relation in new_relations]
+        new_relations = list(set(new_relations))
+        new_relations.sort()
+        return new_relations
+
+    def tonelli_repeated(self, square, prime, prime_power):
+        old_mod = prime ** (prime_power - 1)
+        new_relations = set()
+        for x_k in self.tonelli_relations[prime][prime_power - 1]:
+            y_k = self.find_inverse(2 * x_k, old_mod)
+            x_next = (x_k - ((x_k ** 2) - square) * y_k) % (old_mod * prime)
+            new_relations.add(x_next)
+        new_relations = list(new_relations)
+        new_relations.sort()
+        return new_relations
+
+    def tonelli_shanks(self, square, prime, prime_power=1):
+        a = square
+        b = 0
+        power = 0
+        k = 1
+        m = int((prime - 1) / 2)
+        if self.fast_powers(a, m, prime) != 1:
+            return (-1, -1)
+        if prime == 2:
+            return self.tonelli_2(square, prime, prime_power)
+        if prime_power > 1:
+            return self.tonelli_repeated(square, prime, prime_power)
+        if square == 1:
+            return (1, prime - 1)
+        while True:
+            legendre = self.fast_powers(a, m, prime)
+            if legendre == 1:
+                if m % 2 == 1:
+                    break
+                else:
+                    m = m >> 1
+                k = k + 1
+            if legendre == prime - 1:
+                if b == 0:
+                    b = self.find_non_residue(prime)
+                power = power + (2 ** (k - 1))
+                a = (a * self.fast_powers(b, (2 ** (k-1)), prime)) % prime
+        final_sqrt = self.fast_powers(a, int((m+1)/2), prime)
+        if power > 0:
+            b_inverse = self.find_inverse(b, prime)
+            answer = final_sqrt * self.fast_powers(b_inverse, power // 2, prime) % prime
+        else:
+            answer = final_sqrt
+        return (answer, (-answer) % prime)
+                
+    def fast_powers(self, base, exponent, mod):
+        exponent = int(exponent)
+        ret_val = 1
+        while exponent > 0:
+            if exponent % 2 == 1:
+                ret_val = (ret_val * base) % mod
+                exponent = exponent - 1
+            base = (base * base) % mod
+            exponent = exponent >> 1
+        return ret_val
+
+    def find_non_residue(self, mod):
+        if mod == 2:
+            return 1
+        value = 2
+        exponent = (mod - 1) / 2
+        while True:
+            current = self.fast_powers(value, exponent, mod)
+            if current == mod - 1:
+                return value
+            value = value + 1
+
+    def find_inverse(self, value, mod):
+        # convention r = r_a * q_a + r_b
+        coefficients = []
+        r = mod
+        r_a = value
+        r_b = 1
+        while r_b != 0:
+            q_a = r // r_a
+            r_b = r % r_a
+            coefficients.append(q_a)
+            r = r_a
+            r_a = r_b
+        top_row = [0, 1]
+        bottom_row = [1, 0]
+        for c in coefficients:
+            top_row.append(c * top_row[-1] + top_row[-2])
+            bottom_row.append(c * bottom_row[-1] + bottom_row[-2])
+        if ((top_row[-2] * bottom_row[-1]) - (top_row[-1] * bottom_row[-2])) == -1:
+            return (-1 * top_row[-2]) % mod
+        return top_row[-2] % mod
+
+    def tonelli_wrapper(self, candidate, value):
+        current = math.log(candidate)
+        factors = [0] * len(self.factor_base)
+        for count, prime in enumerate(self.factor_base):
+            if prime not in self.tonelli_relations:
+                self.tonelli_relations.update({prime: [math.log(prime), self.tonelli_shanks(self.n, prime, 1)]})
+            power = 0
+            while power >= 0:
+                if len(self.tonelli_relations[prime]) < (power + 2):
+                    self.tonelli_relations[prime].append(self.tonelli_shanks(self.n, prime, power + 1))
+                if value % (prime ** (power + 1)) in self.tonelli_relations[prime][power + 1]:
+                    # print(f'found that %d ^ %d is a factor' % (prime, power + 1))
+                    power += 1
+                    current = current - self.tonelli_relations[prime][0]
+                    factors[count] += 1
+                else:
+                    power = -1
+                if current < 0.001:
+                    power = -1
+        if current < 0.001:
+            return 1, factors
+        return -1, factors
+
+    def find_bsmooth(self, B, tonelli=True):
         primes = self.gen_primes(B)
+        print("Done generating primes")
         sq = int(math.sqrt(self.n))
         i = 1
         while len(self.matrix) <= len(primes):
             temp = sq + i
             current = ((temp)**2) % self.n
-            factored, factors = self.factor_with_base(primes, current)
+            
+            if tonelli:
+                factored, factors = self.tonelli_wrapper(current, temp)
+            else:
+                factored, factors = self.factor_with_base(primes, current)
+            
             if factored == 1:
                 if len(self.matrix) == 0:
                     self.matrix = np.array([factors])
@@ -57,7 +203,6 @@ class QuadraticSieve:
         B = np.exp((1/2)*math.sqrt(math.log(self.n)*math.log(math.log(self.n))))
         return math.ceil(B)
     
-
     #returns two arrays A and B. A[i]**2 is congruent to B[i]**2 mod n for all i. 
     def find_linear_dependency_mod_2(self, M, v, factor_base):
         A = M % 2 != 0   # reducing the matrix mod 2 (True = 1, False = 0)
@@ -117,17 +262,28 @@ class QuadraticSieve:
             return math.gcd(abs(a-b), self.n)
     
     #driver code
-    def find_prime_factor(self):
+    def find_prime_factor(self, tonelli=True):
         B = self.get_B()
-        self.find_bsmooth(B)
-        self.gen_primes(limit=B)
-        A, B = Sieve.find_linear_dependency_mod_2(Sieve.matrix, Sieve.bsmooth, Sieve.factor_base)
+        self.find_bsmooth(B, tonelli)
+        A, B = self.find_linear_dependency_mod_2(self.matrix, self.bsmooth, self.factor_base)
         ret = []
         for i in range(len(A)):
-            ret.append(Sieve.basic_principle(A[i], B[i]))
+            ret.append(self.basic_principle(A[i], B[i]))
         return ret
 
-        
-Sieve = QuadraticSieve(3837523)
-print(Sieve.find_prime_factor())
+# n = 16921456439215439701
+n = 100001880003211
 
+current = time.time()
+Sieve_A = QuadraticSieve(n)
+sol_A = Sieve_A.find_prime_factor(tonelli=False)
+end = time.time()
+print("Brute force took " + str(end - current) + " seconds")
+print(sol_A)
+
+current = time.time()
+Sieve_B = QuadraticSieve(n)
+sol_B = Sieve_B.find_prime_factor(tonelli=True)
+end = time.time()
+print("Tonelli took " + str(end - current) + " seconds")
+print(sol_B)
