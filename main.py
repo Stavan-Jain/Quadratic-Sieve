@@ -135,11 +135,12 @@ class QuadraticSieve:
             for k in dependency:
                 indices.append(np.where(v == k)[0])  #finding indices corresponding to B-smooth numbers
             prime_exp = sum([M[i]for i in indices])[0]
+            #print(prime_exp)
             prime_exp = prime_exp // 2
 
             b = 1
             for i in range(len(factorbase)):
-                b = b* pow(factorbase[i].item(),prime_exp[i].item(),self.n) % self.n
+                b = (b* pow(factorbase[i].item(),prime_exp[i].item(),self.n)) % self.n
             #b = np.prod(factorbase**prime_exp) #computing product of prime powers
             # .item() converts np.int64 to int
             B.append(b % self.n)
@@ -156,11 +157,11 @@ class QuadraticSieve:
         return C, B 
 
     def basic_principle(self, a, b):
-        #print(a, b, self.n)
+        #print(type(a), type(b))
         if((a-b)%self.n==0 or (a+b)%self.n==0):
             return False
         else: 
-            return math.gcd(a-b, self.n)
+            return math.gcd(abs(a-b), self.n)
     
     #driver code
     def find_prime_factor(self):
@@ -180,7 +181,9 @@ class QuadraticSieve:
 #Sieve = QuadraticSieve(100109*100271)
 #Sieve = QuadraticSieve(100109* 386429)
 #Sieve = QuadraticSieve(100271* 5009317 )
-Sieve = QuadraticSieve(16921456439215439701)
+#Sieve = QuadraticSieve(10023234*12345679)
+Sieve = QuadraticSieve(310248241 * 383838383)
+#Sieve = QuadraticSieve(16921456439215439701)
 #Sieve = QuadraticSieve(384869498225059)
 print(Sieve.find_prime_factor())
 
