@@ -1,6 +1,7 @@
 import numpy as np
 from utils import *
 import math 
+import time
 
 class QuadraticSieve:
     
@@ -9,11 +10,12 @@ class QuadraticSieve:
         self.matrix = np.array([])
         self.bsmooth = np.array([])
         self.factor_base = np.array([])
+        self.tonelli_relations = dict({})
     
     def gen_primes(self, limit):
         primes = [2]
         i=3
-        while i < limit:
+        while i <= limit:
             is_prime = True
             for p in primes:
                 if i % p == 0:
@@ -35,6 +37,99 @@ class QuadraticSieve:
             temp = -1
         return temp, factors
 
+    def tonelli_shanks(self, square, prime):
+        if square == 0:
+            return (0, 0)
+        if square == 1:
+            return (1, prime - 1)
+        if prime == 2:
+            return (1, 1)
+        m = int((prime - 1) / 2)
+        a = square
+        b = 0
+        power = 0
+        k = 1
+        
+        if self.fast_powers(a, m, prime) != 1:
+            return (-1, -1)
+        
+        while True:
+            legendre = self.fast_powers(a, m, prime)
+            if legendre == 1:
+                if m % 2 == 1:
+                    break
+                else:
+                    m = m >> 1
+                k = k + 1
+            if legendre == prime - 1:
+                if b == 0:
+                    b = self.find_non_residue(prime)
+                power = power + (2 ** (k - 1))
+                a = (a * self.fast_powers(b, (2 ** (k-1)), prime)) % prime
+        final_sqrt = self.fast_powers(a, int((m+1)/2), prime)
+        if power > 0:
+            b_inverse = self.find_inverse(b, prime)
+            answer = final_sqrt * self.fast_powers(b_inverse, power // 2, prime) % prime
+        else:
+            answer = final_sqrt
+        return (answer, (-answer) % prime)
+                
+    def fast_powers(self, base, exponent, mod):
+        exponent = int(exponent)
+        ret_val = 1
+        while exponent > 0:
+            if exponent % 2 == 1:
+                ret_val = (ret_val * base) % mod
+                exponent = exponent - 1
+            base = (base * base) % mod
+            exponent = exponent >> 1
+        return ret_val
+
+    def find_non_residue(self, mod):
+        if mod == 2:
+            return 1
+        value = 2
+        exponent = (mod - 1) / 2
+        while True:
+            current = self.fast_powers(value, exponent, mod)
+            if current == mod - 1:
+                return value
+            value = value + 1
+
+    def find_inverse(self, value, mod):
+        # convention r = r_a * q_a + r_b
+        coefficients = []
+        r = mod
+        r_a = value
+        r_b = 1
+        while r_b != 0:
+            q_a = r // r_a
+            r_b = r % r_a
+            coefficients.append(q_a)
+            r = r_a
+            r_a = r_b
+        top_row = [0, 1]
+        bottom_row = [1, 0]
+        for c in coefficients:
+            top_row.append(c * top_row[-1] + top_row[-2])
+            bottom_row.append(c * bottom_row[-1] + bottom_row[-2])
+        if ((top_row[-2] * bottom_row[-1]) - (top_row[-1] * bottom_row[-2])) == -1:
+            return (-1 * top_row[-2]) % mod
+        return top_row[-2] % mod
+
+    def tonelli_wrapper(self, candidate, value):
+        current = math.log(candidate)
+        factors = [0] * len(self.factor_base)
+        for count, prime in enumerate(self.factor_base):
+            if prime not in self.tonelli_relations:
+                self.tonelli_relations.update({prime: [math.log(prime), self.tonelli_shanks(self.n % prime, prime)]})
+            if value % prime == self.tonelli_relations[prime][1][0] or value % prime == self.tonelli_relations[prime][1][1]:
+                current = current - self.tonelli_relations[prime][0]
+                factors[count] += 1
+        if current < 0.001:
+            return 1, factors
+        return -1, factors
+
     def find_bsmooth(self, B):
         primes = self.gen_primes(B)
         sq = int(math.sqrt(self.n))
@@ -43,6 +138,7 @@ class QuadraticSieve:
             temp = sq + i
             current = ((temp)**2) % self.n
             factored, factors = self.factor_with_base(primes, current)
+            # factored, factors = self.tonelli_wrapper(current, i)
             if factored == 1:
                 if len(self.matrix) == 0:
                     self.matrix = np.array([factors])
@@ -57,7 +153,6 @@ class QuadraticSieve:
         B = np.exp((1/2)*math.sqrt(math.log(self.n)*math.log(math.log(self.n))))
         return math.ceil(B)
     
-
     #returns two arrays A and B. A[i]**2 is congruent to B[i]**2 mod n for all i. 
     def find_linear_dependency_mod_2(self, M, v, factor_base):
         A = M % 2 != 0   # reducing the matrix mod 2 (True = 1, False = 0)
@@ -120,7 +215,6 @@ class QuadraticSieve:
     def find_prime_factor(self):
         B = self.get_B()
         self.find_bsmooth(B)
-        self.gen_primes(limit=B)
         A, B = Sieve.find_linear_dependency_mod_2(Sieve.matrix, Sieve.bsmooth, Sieve.factor_base)
         ret = []
         for i in range(len(A)):
@@ -128,6 +222,17 @@ class QuadraticSieve:
         return ret
 
         
-Sieve = QuadraticSieve(3837523)
-print(Sieve.find_prime_factor())
+Sieve = QuadraticSieve(667)
+# print(Sieve.find_prime_factor())
+Sieve.gen_primes(17)
 
+current = time.time()
+sol_A = Sieve.tonelli_wrapper(357, 32)
+end = time.time()
+print("Tonelli took " + str(end - current) + " seconds")
+print(sol_A)
+current = time.time()
+sol_B = Sieve.factor_with_base(Sieve.factor_base, 357)
+end = time.time()
+print("Brute force took " + str(end - current) + " seconds")
+print(sol_B)
