@@ -121,7 +121,7 @@ class QuadraticSieve:
                 if b == 0:
                     b = self.find_non_residue(prime)
                 power = power + (2 ** (k - 1))
-                a = (a * self.fast_powers(b, (2 ** (k-1)), prime)) % prime
+                a = (a * int(self.fast_powers(b, (2 ** (k-1)), prime))) % prime
         final_sqrt = self.fast_powers(a, int((m+1)/2), prime)
         if power > 0:
             b_inverse = self.find_inverse(b, prime)
@@ -339,11 +339,11 @@ class QuadraticSieve:
 
 #Sieve = QuadraticSieve(3837523)       
 #Sieve = QuadraticSieve(77340247)
-#Sieve = QuadraticSieve(100109*100271)
+Sieve = QuadraticSieve(100109*100271)
 #Sieve = QuadraticSieve(100109* 386429)
-Sieve = QuadraticSieve(100271* 5009317 )
+#Sieve = QuadraticSieve(100271* 5009317 )
 #Sieve = QuadraticSieve(10023234*12345679)
-#Sieve = QuadraticSieve(310248241 * 383838383)
+Sieve = QuadraticSieve(310248241 * 383838383)
 #Sieve = QuadraticSieve(16921456439215439701)
 #Sieve = QuadraticSieve(384869498225059)
 print(Sieve.find_prime_factor(tonelli=True))
