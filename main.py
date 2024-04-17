@@ -37,21 +37,44 @@ class QuadraticSieve:
             temp = -1
         return temp, factors
 
-    def tonelli_shanks(self, square, prime):
-        if square == 0:
-            return (0, 0)
-        if square == 1:
-            return (1, prime - 1)
-        if prime == 2:
-            return (1, 1)
-        m = int((prime - 1) / 2)
+    def tonelli_2(self, square, prime, prime_power):
+        if prime_power == 1:
+            if square % prime == 1:
+                return (1, 1)
+            return (-1, -1)
+        if prime_power == 2:
+            if square % (prime ** prime_power) == 1:
+                return (1, 3)
+            return (-1, -1)
+        if prime_power == 3:
+            if square % 8 != 1:
+                return (-1, -1)
+            return (1, 3, 5, 7)
+        new_relations = []
+        mod = 2 << (prime_power - 1)
+        for relation in self.tonelli_relations[prime][prime_power-1]:
+            indicator = ((relation ** 2) - square) >> (prime_power - 1)
+            if indicator % 2 == 0:
+                new_relations.append(relation % mod)
+            else:
+                new_relations.append((relation + (2 << (prime_power - 3))) % mod)
+        new_relations = new_relations + [mod - relation for relation in new_relations]
+        new_relations = list(set(new_relations))
+        new_relations.sort()
+        return new_relations
+
+    def tonelli_shanks(self, square, prime, prime_power=1):
         a = square
         b = 0
         power = 0
         k = 1
-        
+        m = int((prime - 1) / 2)
         if self.fast_powers(a, m, prime) != 1:
             return (-1, -1)
+        if prime == 2:
+            return self.tonelli_2(square, prime, prime_power)
+        if square == 1:
+            return (1, prime - 1)
         
         while True:
             legendre = self.fast_powers(a, m, prime)
@@ -122,10 +145,24 @@ class QuadraticSieve:
         factors = [0] * len(self.factor_base)
         for count, prime in enumerate(self.factor_base):
             if prime not in self.tonelli_relations:
-                self.tonelli_relations.update({prime: [math.log(prime), self.tonelli_shanks(self.n % prime, prime)]})
-            if value % prime == self.tonelli_relations[prime][1][0] or value % prime == self.tonelli_relations[prime][1][1]:
-                current = current - self.tonelli_relations[prime][0]
-                factors[count] += 1
+                self.tonelli_relations.update({prime: [math.log(prime), self.tonelli_shanks(self.n % prime, prime, 1)]})
+            power = 0
+            while power >= 0 and prime == 2:
+                if len(self.tonelli_relations[prime]) < (power + 2):
+                    self.tonelli_relations[prime].append(self.tonelli_shanks(self.n % prime, prime, power + 1))
+                if value % (prime ** (power + 1)) in self.tonelli_relations[prime][power + 1]:
+                    print(f'found that %d ^ %d is a factor' % (prime, power + 1))
+                    power += 1
+                    current = current - self.tonelli_relations[prime][0]
+                    factors[count] += 1
+                else:
+                    power = -1
+                if current < 0.001:
+                    power = -1
+            if prime > 2: # will delete this clause when possible
+                if value % prime in self.tonelli_relations[prime][1]:
+                    current = current - self.tonelli_relations[prime][0]
+                    factors[count] += 1
         if current < 0.001:
             return 1, factors
         return -1, factors
@@ -222,17 +259,17 @@ class QuadraticSieve:
         return ret
 
         
-Sieve = QuadraticSieve(667)
+Sieve = QuadraticSieve(1073)
 # print(Sieve.find_prime_factor())
-Sieve.gen_primes(17)
+Sieve.gen_primes(19)
 
 current = time.time()
-sol_A = Sieve.tonelli_wrapper(357, 32)
+sol_A = Sieve.tonelli_wrapper(152, 35)
 end = time.time()
 print("Tonelli took " + str(end - current) + " seconds")
 print(sol_A)
 current = time.time()
-sol_B = Sieve.factor_with_base(Sieve.factor_base, 357)
+sol_B = Sieve.factor_with_base(Sieve.factor_base, 152)
 end = time.time()
 print("Brute force took " + str(end - current) + " seconds")
 print(sol_B)
