@@ -10,6 +10,19 @@ class QuadraticSieve:
         self.bsmooth = np.array([])
         self.factor_base = np.array([])
 
+     
+    def mod_exponentiation(self, y, p):
+        z = 1 
+        x = self.n % p
+        
+        while (y > 0):
+            if (y & 1):
+                z = (z * x) % p
+
+            y = y >> 1 
+            x = (x * x) % p
+        return z
+
     def eulers_criterion(self, primes):
         for p in primes: 
             if((self.n**(int((p-1)/2)))%p == p-1):
@@ -136,5 +149,8 @@ class QuadraticSieve:
         
 Sieve = QuadraticSieve(3837523)
 print(Sieve.find_prime_factor())
-
+# Sieve2 = QuadraticSieve(227179)
+# print(Sieve2.eulers_criterion([2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47]))
+# p = 11
+# print(Sieve2.mod_exponentiation(((int)((p - 1) / 2)), p))
 
