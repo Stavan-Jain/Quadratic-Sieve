@@ -32,7 +32,6 @@ class QuadraticSieve:
     def eulers_criterion(self, primes):
         for p in primes: 
             if((self.n**(int((p-1)/2)))%p == p-1):
-            # if(mod_exponentiation((int((p-1)/2)),p)):
                 primes.remove(p)
         return primes
 
@@ -47,7 +46,6 @@ class QuadraticSieve:
             if is_prime:
                 primes.append(i)
             i += 1
-        self.factor_base = np.array(primes)
         return primes
 
     def factor_with_base(self, base, target):
@@ -199,6 +197,7 @@ class QuadraticSieve:
 
     def find_bsmooth(self, B, tonelli=True):
         primes = self.eulers_criterion(self.gen_primes(B))
+        self.factor_base = np.array(primes)
         print("Done generating primes")
         sq = int(math.sqrt(self.n))
         i = 1
@@ -346,4 +345,4 @@ Sieve = QuadraticSieve(100109*100271)
 #Sieve = QuadraticSieve(310248241 * 383838383)
 #Sieve = QuadraticSieve(16921456439215439701)
 #Sieve = QuadraticSieve(384869498225059)
-print(Sieve.find_prime_factor(tonelli=False))
+print(Sieve.find_prime_factor(tonelli=True))
