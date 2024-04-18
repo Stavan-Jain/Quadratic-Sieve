@@ -16,6 +16,7 @@ class QuadraticSieve:
         self.old_bsmooth = None
         self.lincombs = dict()
         self.tonelli_relations = dict({})
+        self.i = 1
      
     def mod_exponentiation(self, y, p):
         z = 1 
@@ -196,14 +197,13 @@ class QuadraticSieve:
             return 1, factors
         return -1, factors
 
-    def find_bsmooth(self, B, tonelli=True):
+    def find_bsmooth(self, B, tonelli=True, i=1):
         primes = self.eulers_criterion(self.gen_primes(B))
         self.factor_base = np.array(primes)
-        print("Done generating primes")
         sq = int(math.sqrt(self.n))
-        i = 1
+        self.i = i
         while len(self.matrix) <= len(primes):
-            temp = sq + i
+            temp = sq + self.i
             current = ((temp)**2) % self.n
             
             if tonelli:
@@ -218,7 +218,7 @@ class QuadraticSieve:
                 else:
                     self.matrix = np.append(self.matrix, [factors], axis=0)
                     self.bsmooth = np.append(self.bsmooth, temp)
-            i += 1
+            self.i += 1
         return 
     
     def get_B(self):
@@ -329,9 +329,10 @@ class QuadraticSieve:
     #driver code
     def find_prime_factor(self, tonelli=True):
         ret = []
+        B = self.get_B()
         while len(ret) == 0:
-            B = self.get_B()
-            self.find_bsmooth(B, tonelli)
+            print(self.bsmooth)
+            self.find_bsmooth(B, tonelli, self.i)
             A, C = self.find_congruent_squares(self.matrix, self.bsmooth, self.factor_base)
             for i in range(len(A)):
                 j = self.basic_principle(A[i], C[i])
@@ -342,10 +343,11 @@ class QuadraticSieve:
 #Sieve = QuadraticSieve(3837523)       
 #Sieve = QuadraticSieve(77340247)
 #Sieve = QuadraticSieve(100109*100271)
-Sieve = QuadraticSieve(100109* 386429)
-#Sieve = QuadraticSieve(100271* 5009317 )
+#Sieve = QuadraticSieve(100109* 386429)
+Sieve = QuadraticSieve(100271* 5009317 )
 #Sieve = QuadraticSieve(10023234*12345679)
-Sieve = QuadraticSieve(310248241 * 383838383)
+#Sieve = QuadraticSieve(310248241 * 383838383)
 #Sieve = QuadraticSieve(16921456439215439701)
 #Sieve = QuadraticSieve(384869498225059)
+
 print(Sieve.find_prime_factor(tonelli=False))
