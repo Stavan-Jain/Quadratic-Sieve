@@ -286,8 +286,8 @@ class QuadraticSieve:
 
         m , n = np.shape(A)
         l = len(linear_combinations)
-        for i in range(len(newbsmooth) - len(self.old_bsmooth)):
-            linear_combinations[l + i] = [newbsmooth[i+len(self.old_bsmooth)], [newbsmooth[i+len(self.old_bsmooth)]]]
+        for i in range(len(newbsmooth)):
+            linear_combinations[l + i] = [newbsmooth[i], [newbsmooth[i]]]
         return A, M, v, linear_combinations
     
     #newrows: new exponent vectors (2d array). dimensions (m x n)
