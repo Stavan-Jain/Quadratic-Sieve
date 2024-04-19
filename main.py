@@ -16,6 +16,7 @@ class QuadraticSieve:
         self.old_bsmooth = None
         self.lincombs = dict()
         self.tonelli_relations = dict({})
+        self.tonelli = True
         self.i = 1
      
     def mod_exponentiation(self, y, p):
@@ -197,23 +198,21 @@ class QuadraticSieve:
             return 1, factors
         return -1, factors
 
-    def find_bsmooth(self, B, tonelli=True, i=1):
-        primes = self.eulers_criterion(self.gen_primes(B))
-        #primes = self.gen_primes(B)
-        self.factor_base = np.array(primes)
-        print(self.factor_base)
+    # note tonelli only used for (sqrt(n)+k)^2 < 2n
+    def find_bsmooth(self, num_to_gen, tonelli=True, i=1):
         sq = int(math.sqrt(self.n))
         self.i = i
-        while len(self.matrix) <= len(primes):
+        current = 1
+        while len(self.matrix) <= num_to_gen:
             temp = sq + self.i
             current = ((temp)**2) % self.n
-            
-            if tonelli:
+            if tonelli and self.i < (math.sqrt(self.n)/2):
                 factored, factors = self.tonelli_wrapper(current, temp)
             else:
-                factored, factors = self.factor_with_base(primes, current)
-            
-
+                if self.tonelli:
+                    print("Switching to Brute Force Solving")
+                    self.tonelli = False
+                factored, factors = self.factor_with_base(self.factor_base, current)
             if factored == 1:
                 print(f'%d %d %d %s' % (temp, current, factored, factors))
                 if len(self.matrix) == 0:
@@ -268,16 +267,27 @@ class QuadraticSieve:
     def initialize_objects(self, newrows, newbsmooth):
         nr = newrows % 2 != 0
         linear_combinations = self.lincombs
-        if self.reduced_rows is not None: A = np.concatenate((self.reduced_rows, nr)) #A contains the exponent vectors mod 2 to be row reduced
-        else: A = nr
-        if self.old_matrix is not None : M = np.concatenate((self.old_matrix, newrows)) #M is the complete (unreduced) 'exponent vector' matrix
-        else: M = newrows
-        if self.old_bsmooth is not None : v = np.concatenate((self.old_bsmooth, newbsmooth)) #v is a vector that contains all the bsmooth numbers
-        else: v = newbsmooth
+        
+        print("Initializing")
+        if self.reduced_rows is not None: 
+            A = np.concatenate((self.reduced_rows, nr[len(self.reduced_rows):])) #A contains the exponent vectors mod 2 to be row reduced
+        else: 
+            A = nr
+
+        if self.old_matrix is not None : 
+            M = np.concatenate((self.old_matrix, newrows[len(self.old_matrix):])) #M is the complete (unreduced) 'exponent vector' matrix
+        else: 
+            M = newrows
+
+        if self.old_bsmooth is not None : 
+            v = np.concatenate((self.old_bsmooth, newbsmooth[len(self.old_bsmooth):])) #v is a vector that contains all the bsmooth numbers
+        else: 
+            v = newbsmooth
+
         m , n = np.shape(A)
         l = len(linear_combinations)
-        for i in range(len(newbsmooth)):
-            linear_combinations[l + i] = [newbsmooth[i], [newbsmooth[i]]]
+        for i in range(len(newbsmooth) - len(self.old_bsmooth)):
+            linear_combinations[l + i] = [newbsmooth[i+len(self.old_bsmooth)], [newbsmooth[i+len(self.old_bsmooth)]]]
         return A, M, v, linear_combinations
     
     #newrows: new exponent vectors (2d array). dimensions (m x n)
@@ -287,7 +297,6 @@ class QuadraticSieve:
         A, M, v, linear_combinations = self.initialize_objects(newrows, newbsmooth)
         A, linear_combinations = self.row_reduce(A, linear_combinations)
         linear_dependencies = self.find_lin_dependencies(A, linear_combinations)
-
         #tracks information for next call to `lin_dep_mod2`
         self.old_matrix = A 
         self.old_bsmooth = v
@@ -334,9 +343,13 @@ class QuadraticSieve:
     def find_prime_factor(self, tonelli=True):
         ret = []
         B = self.get_B()
-        print(B)
+        primes = self.eulers_criterion(self.gen_primes(B))
+        self.factor_base = np.array(primes)
+        num_to_gen = len(self.factor_base) - 5
+        print(self.factor_base)
         while len(ret) == 0:
-            self.find_bsmooth(B, tonelli, self.i)
+            num_to_gen += 5
+            self.find_bsmooth(num_to_gen, tonelli, self.i)
             A, C = self.find_congruent_squares(self.matrix, self.bsmooth, self.factor_base)
             for i in range(len(A)):
                 j = self.basic_principle(A[i], C[i])
@@ -344,8 +357,8 @@ class QuadraticSieve:
                     ret.append(j)
         return ret
 
-Sieve = QuadraticSieve(101 * 109)
-#Sieve = QuadraticSieve(3837523)       
+#Sieve = QuadraticSieve(101 * 109)
+Sieve = QuadraticSieve(1093 * 3511)       
 #Sieve = QuadraticSieve(77340247)
 #Sieve = QuadraticSieve(100109*100271)
 #Sieve = QuadraticSieve(100109* 386429)
@@ -356,3 +369,5 @@ Sieve = QuadraticSieve(101 * 109)
 #Sieve = QuadraticSieve(384869498225059)
 
 print(Sieve.find_prime_factor(tonelli=True))
+#for key in Sieve.tonelli_relations.keys():
+#    print(f'%s %s' % (key, Sieve.tonelli_relations[key]))
