@@ -203,6 +203,7 @@ class QuadraticSieve:
         sq = int(math.sqrt(self.n))
         self.i = i
         current = 1
+        self.matrix = np.array([])
         while len(self.matrix) <= num_to_gen:
             temp = sq + self.i
             current = ((temp)**2) % self.n
@@ -214,7 +215,7 @@ class QuadraticSieve:
                     self.tonelli = False
                 factored, factors = self.factor_with_base(self.factor_base, current)
             if factored == 1:
-                print(f'%d %d %d %s' % (temp, current, factored, factors))
+                #print(f'%d %d %d %s' % (temp, current, factored, factors))
                 if len(self.matrix) == 0:
                     self.matrix = np.array([factors])
                     self.bsmooth = np.array(temp)
@@ -268,19 +269,19 @@ class QuadraticSieve:
         nr = newrows % 2 != 0
         linear_combinations = self.lincombs
         
-        print("Initializing")
+        #print("Initializing")
         if self.reduced_rows is not None: 
-            A = np.concatenate((self.reduced_rows, nr[len(self.reduced_rows):])) #A contains the exponent vectors mod 2 to be row reduced
+            A = np.concatenate((self.reduced_rows, nr)) #A contains the exponent vectors mod 2 to be row reduced
         else: 
             A = nr
 
         if self.old_matrix is not None : 
-            M = np.concatenate((self.old_matrix, newrows[len(self.old_matrix):])) #M is the complete (unreduced) 'exponent vector' matrix
+            M = np.concatenate((self.old_matrix, newrows)) #M is the complete (unreduced) 'exponent vector' matrix
         else: 
             M = newrows
 
         if self.old_bsmooth is not None : 
-            v = np.concatenate((self.old_bsmooth, newbsmooth[len(self.old_bsmooth):])) #v is a vector that contains all the bsmooth numbers
+            v = np.concatenate((self.old_bsmooth, newbsmooth)) #v is a vector that contains all the bsmooth numbers
         else: 
             v = newbsmooth
 
@@ -358,11 +359,11 @@ class QuadraticSieve:
         return ret
 
 #Sieve = QuadraticSieve(101 * 109)
-Sieve = QuadraticSieve(1093 * 3511)       
+#Sieve = QuadraticSieve(1093 * 3511)       
 #Sieve = QuadraticSieve(77340247)
 #Sieve = QuadraticSieve(100109*100271)
 #Sieve = QuadraticSieve(100109* 386429)
-#Sieve = QuadraticSieve(100271* 5009317 )
+Sieve = QuadraticSieve(100271* 5009317 )
 #Sieve = QuadraticSieve(10023234*12345679)
 #Sieve = QuadraticSieve(310248241 * 383838383)
 #Sieve = QuadraticSieve(16921456439215439701)
