@@ -356,24 +356,26 @@ class QuadraticSieve:
             primes = self.gen_primes(B)
         self.factor_base = np.array(primes)
         print(self.factor_base)
-        num_to_gen = 1#len(self.factor_base)
+        num_to_gen = 1 #int(len(self.factor_base) / 5)
         while len(ret) == 0:
+            print("new iteration")
             self.find_bsmooth(num_to_gen, tonelli, self.i)
             A, C = self.find_congruent_squares(self.matrix, self.bsmooth, self.factor_base)
             for i in range(len(A)):
                 j = self.basic_principle(A[i], C[i])
                 if j > 1:
                     ret.append(j)
+            num_to_gen = 1
         return ret
 
 #Sieve = QuadraticSieve(101 * 109)
-Sieve = QuadraticSieve(1093 * 3511)       
+#Sieve = QuadraticSieve(1093 * 3511)       
 #Sieve = QuadraticSieve(8101 * 9547)
 #Sieve = QuadraticSieve(100109 * 100271)
 #Sieve = QuadraticSieve(100109 * 386429)
 #Sieve = QuadraticSieve(100271 * 5009317)
 #Sieve = QuadraticSieve(10000019 * 1000003) # was working brute force with bad euler's criterion code
-#Sieve = QuadraticSieve(310248241 * 383838383)
+Sieve = QuadraticSieve(310248241 * 383838383)
 #Sieve = QuadraticSieve(16921456439215439701) # first test case
 
 print(Sieve.find_prime_factor(tonelli=False))
