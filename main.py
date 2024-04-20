@@ -12,7 +12,7 @@ class QuadraticSieve:
         self.factor_base = np.array([])
         self.old_rows = None
         self.old_matrix = None
-        self.reduced_rows = None
+        #self.reduced_rows = None
         self.old_bsmooth = None
         self.lincombs = dict()
         self.tonelli_relations = dict({})
@@ -276,13 +276,13 @@ class QuadraticSieve:
         linear_combinations = self.lincombs
         
         #print("Initializing")
-        if self.reduced_rows is not None: 
-            A = np.concatenate((self.reduced_rows, nr)) #A contains the exponent vectors mod 2 to be row reduced
+        if self.old_matrix is not None: 
+            A = np.concatenate((self.old_matrix, nr)) #A contains the exponent vectors mod 2 to be row reduced
         else: 
             A = nr
 
-        if self.old_matrix is not None : 
-            M = np.concatenate((self.old_matrix, newrows)) #M is the complete (unreduced) 'exponent vector' matrix
+        if self.old_rows is not None : 
+            M = np.concatenate((self.old_rows, newrows)) #M is the complete (unreduced) 'exponent vector' matrix
         else: 
             M = newrows
 
@@ -353,7 +353,7 @@ class QuadraticSieve:
         primes = self.eulers_criterion(self.gen_primes(B))
         self.factor_base = np.array(primes)
         print(self.factor_base)
-        num_to_gen = len(self.factor_base)
+        num_to_gen = 1#len(self.factor_base)
         while len(ret) == 0:
             self.find_bsmooth(num_to_gen, tonelli, self.i)
             A, C = self.find_congruent_squares(self.matrix, self.bsmooth, self.factor_base)
@@ -364,10 +364,10 @@ class QuadraticSieve:
         return ret
 
 #Sieve = QuadraticSieve(101 * 109)
-#Sieve = QuadraticSieve(1093 * 3511)       
+Sieve = QuadraticSieve(1093 * 3511)       
 #Sieve = QuadraticSieve(8101 * 9547)
 #Sieve = QuadraticSieve(100109 * 100271)
-Sieve = QuadraticSieve(100109 * 386429)
+#Sieve = QuadraticSieve(100109 * 386429)
 #Sieve = QuadraticSieve(100271 * 5009317)
 #Sieve = QuadraticSieve(10000019 * 1000003) # was working brute force with bad euler's criterion code
 #Sieve = QuadraticSieve(310248241 * 383838383)
