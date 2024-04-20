@@ -18,19 +18,9 @@ class QuadraticSieve:
         self.tonelli_relations = dict({})
         self.tonelli = True
         self.i = 1
-     
-    def mod_exponentiation(self, y, p):
-        z = 1 
-        x = self.n % p
-        
-        while (y > 0):
-            if (y & 1):
-                z = (z * x) % p
 
-            y = y >> 1 
-            x = (x * x) % p
-        return z
-
+    # use's euler's criterion to determine for which B-smooth primes is n a quadratic residue
+    # if n is not a quadratic residue then the corresponding prime is removed from the factor base 
     def eulers_criterion(self, primes):
         new_primes = primes.copy()
         for p in primes: 
@@ -38,6 +28,7 @@ class QuadraticSieve:
                 new_primes.remove(p)
         return new_primes
 
+    # brute force generate primes under the B-smooth limit
     def gen_primes(self, limit):
         primes = [2]
         i=3
@@ -51,6 +42,7 @@ class QuadraticSieve:
             i += 1
         return primes
 
+    # this is the brute force function to determine whether the target is b-smooth
     def factor_with_base(self, base, target):
         temp = target
         factors = [0] * len(base)
@@ -62,6 +54,7 @@ class QuadraticSieve:
             temp = -1
         return temp, factors
 
+    # this function deals with the special case of p=2 for tonelli-shanks
     def tonelli_2(self, square, prime, prime_power):
         if prime_power == 1:
             if square % prime == 1:
@@ -88,6 +81,7 @@ class QuadraticSieve:
         new_relations.sort()
         return new_relations
 
+    # this function uses the base tonelli-shanks relations to generate relations for powers of primes
     def tonelli_repeated(self, square, prime, prime_power):
         old_mod = prime ** (prime_power - 1)
         new_relations = set()
@@ -100,18 +94,22 @@ class QuadraticSieve:
         new_relations.sort()
         return new_relations
 
+    # this function sends the case to tonelli_2 or tonelli_repeated if necessary
+    # else, the function does the tonelli-shanks algorithm
     def tonelli_shanks(self, square, prime, prime_power=1):
-        a = square
-        b = 0
-        power = 0
-        k = 1
-        m = int((prime - 1) / 2)
         if prime == 2:
             return self.tonelli_2(square, prime, prime_power)
         if prime_power > 1:
             return self.tonelli_repeated(square, prime, prime_power)
         if square == 1:
             return (1, prime - 1)
+        
+        a = square
+        b = 0
+        power = 0
+        k = 1
+        m = int((prime - 1) / 2)
+
         while True:
             legendre = self.fast_powers(a, m, prime)
             if legendre == 1:
@@ -132,18 +130,20 @@ class QuadraticSieve:
         else:
             answer = final_sqrt
         return (answer, (-answer) % prime)
-                
+
+    # this function computes powers modulo mod (quickly)            
     def fast_powers(self, base, exponent, mod):
         exponent = int(exponent)
         ret_val = 1
         while exponent > 0:
-            if exponent % 2 == 1:
+            if (exponent & 1):
                 ret_val = (ret_val * base) % mod
                 exponent = exponent - 1
             base = (base * base) % mod
             exponent = exponent >> 1
         return ret_val
 
+    # this function finds a non-residue for use in the tonelli-shanks algorithm
     def find_non_residue(self, mod):
         if mod == 2:
             return 1
@@ -155,6 +155,7 @@ class QuadraticSieve:
                 return value
             value = value + 1
 
+    # this function uses the extended gcd algorithm to find modular inverses
     def find_inverse(self, value, mod):
         # convention r = r_a * q_a + r_b
         coefficients = []
@@ -176,6 +177,7 @@ class QuadraticSieve:
             return (-1 * top_row[-2]) % mod
         return top_row[-2] % mod
 
+    # this wrapper uses the generated tonelli-relations and generates more when needed
     def tonelli_wrapper(self, candidate, value):
         current = math.log(candidate)
         factors = [0] * len(self.factor_base)
@@ -200,7 +202,8 @@ class QuadraticSieve:
             return 1, factors
         return -1, factors
 
-    # note tonelli only used for (sqrt(n)+k)^2 < 2n
+    # note tonelli only used for (sqrt(n)+k)^2 < 2n to keep consistent factor base
+    # this function finds a specified number of b-smooth numbers
     def find_bsmooth(self, num_to_gen, tonelli=True, i=1):
         sq = int(math.sqrt(self.n))
         self.i = i
@@ -227,6 +230,7 @@ class QuadraticSieve:
             self.i += 1
         return 
     
+    # this function generates the limit B
     def get_B(self):
         B = np.exp((1/2)*math.sqrt(math.log(self.n)*math.log(math.log(self.n))))
         return math.ceil(B) 
@@ -361,20 +365,15 @@ class QuadraticSieve:
 
 #Sieve = QuadraticSieve(101 * 109)
 #Sieve = QuadraticSieve(1093 * 3511)       
-#Sieve = QuadraticSieve(77340247)
-#Sieve = QuadraticSieve(100109*100271)
-#Sieve = QuadraticSieve(100109* 386429)
-Sieve = QuadraticSieve(100271* 5009317)
+#Sieve = QuadraticSieve(8101 * 9547)
+#Sieve = QuadraticSieve(100109 * 100271)
+Sieve = QuadraticSieve(100109 * 386429)
+#Sieve = QuadraticSieve(100271 * 5009317)
 #Sieve = QuadraticSieve(10000019 * 1000003) # was working brute force with bad euler's criterion code
 #Sieve = QuadraticSieve(310248241 * 383838383)
-#Sieve = QuadraticSieve(16921456439215439701)
+#Sieve = QuadraticSieve(16921456439215439701) # first test case
 
-# tonelli true and false produce the same relations for test case 100109 * 386429 but produce different results when factorizations are attempted
-
-print(Sieve.find_prime_factor(tonelli=True))
-#print(Sieve.tonelli_shanks(7069540352, 5, 1))
-#print(Sieve.tonelli_shanks(2, 5, 1))
-
+print(Sieve.find_prime_factor(tonelli=False))
 
 n = 100109* 386429
 A = QuadraticSieve(n)
@@ -387,7 +386,7 @@ end = time.time()
 #print(f'Tonelli took %f seconds' % (end - current))
 
 current = time.time()
-##res_B = B.find_prime_factor(tonelli=False)
+#res_B = B.find_prime_factor(tonelli=False)
 end = time.time()
 #print(res_B)
 #print(f'Brute force took %f seconds' % (end - current))
