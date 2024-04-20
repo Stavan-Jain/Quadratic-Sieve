@@ -350,7 +350,10 @@ class QuadraticSieve:
     def find_prime_factor(self, tonelli=True):
         ret = []
         B = self.get_B()
-        primes = self.eulers_criterion(self.gen_primes(B))
+        if tonelli:
+            primes = self.eulers_criterion(self.gen_primes(B))
+        else:
+            primes = self.gen_primes(B)
         self.factor_base = np.array(primes)
         print(self.factor_base)
         num_to_gen = 1#len(self.factor_base)
