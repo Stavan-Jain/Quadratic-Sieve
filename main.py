@@ -32,10 +32,11 @@ class QuadraticSieve:
         return z
 
     def eulers_criterion(self, primes):
+        new_primes = primes.copy()
         for p in primes: 
-            if self.fast_powers(self.n, int((p-1)/2), p) != 1:
-                primes.remove(p)
-        return primes
+            if  self.fast_powers(self.n, int((p-1)/2), p) != 1:
+                new_primes.remove(p)
+        return new_primes
 
     def gen_primes(self, limit):
         primes = [2]
@@ -186,7 +187,8 @@ class QuadraticSieve:
                 if len(self.tonelli_relations[prime]) < (power + 2):
                     self.tonelli_relations[prime].append(self.tonelli_shanks(self.n, prime, power + 1))
                 if value % (prime ** (power + 1)) in self.tonelli_relations[prime][power + 1]:
-                    # print(f'found that %d ^ %d is a factor' % (prime, power + 1))
+                    #print(f'found that %d ^ %d is a factor' % (prime, power + 1))
+                    #print(f'%s %s^%s %s' % (value, prime, (power + 1), self.tonelli_relations[prime][power + 1]))
                     power += 1
                     current = current - self.tonelli_relations[prime][0]
                     factors[count] += 1
@@ -207,7 +209,7 @@ class QuadraticSieve:
         while len(self.matrix) <= num_to_gen:
             temp = sq + self.i
             current = ((temp)**2) % self.n
-            if tonelli and self.i < (math.sqrt(self.n)/2):
+            if tonelli and (temp * temp) < 2 * self.n:
                 factored, factors = self.tonelli_wrapper(current, temp)
             else:
                 if self.tonelli:
@@ -215,7 +217,7 @@ class QuadraticSieve:
                     self.tonelli = False
                 factored, factors = self.factor_with_base(self.factor_base, current)
             if factored == 1:
-                #print(f'%d %d %d %s' % (temp, current, factored, factors))
+                print(f'%d %d %d %s' % (temp, current, factored, factors))
                 if len(self.matrix) == 0:
                     self.matrix = np.array([factors])
                     self.bsmooth = np.array(temp)
@@ -346,10 +348,9 @@ class QuadraticSieve:
         B = self.get_B()
         primes = self.eulers_criterion(self.gen_primes(B))
         self.factor_base = np.array(primes)
-        num_to_gen = len(self.factor_base) - 5
         print(self.factor_base)
+        num_to_gen = len(self.factor_base)
         while len(ret) == 0:
-            num_to_gen += 5
             self.find_bsmooth(num_to_gen, tonelli, self.i)
             A, C = self.find_congruent_squares(self.matrix, self.bsmooth, self.factor_base)
             for i in range(len(A)):
@@ -363,12 +364,30 @@ class QuadraticSieve:
 #Sieve = QuadraticSieve(77340247)
 #Sieve = QuadraticSieve(100109*100271)
 #Sieve = QuadraticSieve(100109* 386429)
-Sieve = QuadraticSieve(100271* 5009317 )
-#Sieve = QuadraticSieve(10023234*12345679)
+Sieve = QuadraticSieve(100271* 5009317)
+#Sieve = QuadraticSieve(10000019 * 1000003) # was working brute force with bad euler's criterion code
 #Sieve = QuadraticSieve(310248241 * 383838383)
 #Sieve = QuadraticSieve(16921456439215439701)
-#Sieve = QuadraticSieve(384869498225059)
+
+# tonelli true and false produce the same relations for test case 100109 * 386429 but produce different results when factorizations are attempted
 
 print(Sieve.find_prime_factor(tonelli=True))
-#for key in Sieve.tonelli_relations.keys():
-#    print(f'%s %s' % (key, Sieve.tonelli_relations[key]))
+#print(Sieve.tonelli_shanks(7069540352, 5, 1))
+#print(Sieve.tonelli_shanks(2, 5, 1))
+
+
+n = 100109* 386429
+A = QuadraticSieve(n)
+B = QuadraticSieve(n)
+
+current = time.time()
+#res_A = A.find_prime_factor()
+end = time.time()
+#print(res_A)
+#print(f'Tonelli took %f seconds' % (end - current))
+
+current = time.time()
+##res_B = B.find_prime_factor(tonelli=False)
+end = time.time()
+#print(res_B)
+#print(f'Brute force took %f seconds' % (end - current))
