@@ -473,6 +473,7 @@ class QuadraticSieve:
                 j = self.basic_principle(A[i], C[i])
                 if j > 1:
                     ret.append(j)
+            num_to_gen = 1
         return ret
 
 #Sieve = QuadraticSieve(101 * 109)
@@ -481,8 +482,9 @@ class QuadraticSieve:
 #Sieve = QuadraticSieve(100109 * 100271)
 #Sieve = QuadraticSieve(100109 * 386429)
 #Sieve = QuadraticSieve(100271 * 5009317)
-#Sieve = QuadraticSieve(10000019 * 1000003)
-#Sieve = QuadraticSieve(310248241 * 383838383)
+
+#Sieve = QuadraticSieve(10000019 * 1000003) # was working brute force with bad euler's criterion code
+Sieve = QuadraticSieve(310248241 * 383838383)
 #Sieve = QuadraticSieve(16921456439215439701) # first test case
 
 # print(Sieve.find_prime_factor(tonelli=False))
