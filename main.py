@@ -12,7 +12,6 @@ class QuadraticSieve:
         self.factor_base = []
         self.old_rows = None
         self.old_matrix = None
-        #self.reduced_rows = None
         self.old_bsmooth = None
         self.lincombs = dict()
         self.tonelli_relations = dict({})
@@ -282,6 +281,7 @@ class QuadraticSieve:
                                 possible_minus[minus_offset] += current_log
                                 possible_plus[minus_offset - difference] += current_log
                                 minus_offset += modulo
+            
             cutoff = 0.5 * math.log(self.n / 2) + math.log(starting_plus + limit - sq) - 1.6 * math.log(self.factor_base[-1])
             # From Silverman "The Multiple Polynomial Quadratic Sieve"
             candidates_p = []
@@ -299,7 +299,7 @@ class QuadraticSieve:
             for candidate in candidates_p:
                 factored, factors = self.factor_with_base(self.factor_base, candidate ** 2 - self.n)
                 if factored == 1:
-                    #print(f'%d %d %d %s' % (candidate, candidate ** 2 - self.n, factored, factors))
+                    print(f'%d %d %d %s' % (candidate, candidate ** 2 - self.n, factored, factors))
                     if len(self.matrix) == 0:
                         self.matrix = np.array([factors])
                         self.bsmooth = np.array(candidate)
@@ -314,7 +314,7 @@ class QuadraticSieve:
                 factored, factors = self.factor_with_base(self.factor_base, value)
                 if factored == 1:
                     factors[0] = 1
-                    #print(f'%d %d %d %s' % (candidate, value, factored, factors))
+                    print(f'%d %d %d %s' % (candidate, value, factored, factors))
                     if len(self.matrix) == 0:
                         self.matrix = np.array([factors])
                         self.bsmooth = np.array(candidate)
@@ -460,7 +460,7 @@ class QuadraticSieve:
             self.factor_base = self.gen_primes(B)
         else:
             self.factor_base = [-1] + self.eulers_criterion(self.gen_primes(B))
-            self.generate_tonelli(3)
+            self.generate_tonelli(2)
         print(self.factor_base)
         num_to_gen = len(self.factor_base) + 5
         while len(ret) == 0:
@@ -479,23 +479,15 @@ class QuadraticSieve:
 #Sieve = QuadraticSieve(100109 * 100271)
 #Sieve = QuadraticSieve(100109 * 386429)
 #Sieve = QuadraticSieve(100271 * 5009317)
-
 #Sieve = QuadraticSieve(10000019 * 1000003)
 #Sieve = QuadraticSieve(310248241 * 383838383)
-#Sieve = QuadraticSieve(16921456439215439701) # first test case
-
-#print(Sieve.find_prime_factor(tonelli=True))
-
-n = 310248241 * 383838383
-n = 10000019 * 1000003
-n = 2860486313 * 5915587277 #16921456439215439701
-#n = 100123456789 * 1012346665879
-#n = 46839566299936919234246726809
-A = QuadraticSieve(n)
+#Sieve = QuadraticSieve(2860486313 * 5915587277)            # first test case - 16921456439215439701
+Sieve = QuadraticSieve(100123456789 * 1012346665879)
+#Sieve = QuadraticSieve(46839566299936919234246726809)      # second test case
 
 current = time.time()
-res_A = A.find_prime_factor(tonelli=True)
+res = Sieve.find_prime_factor(tonelli=True)
 end = time.time()
-print(res_A)
-print(f'Tonelli took %f seconds' % (A.tonelli_time))
+print(res)
+#print(f'Tonelli took %f seconds' % (Sieve.tonelli_time))
 print(f'Total took %f seconds' % (end - current))
