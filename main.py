@@ -359,7 +359,7 @@ class QuadraticSieve:
                 linear_combinations[h], linear_combinations[i_max] = lc2, lc1 #keeping track of index for each number in the vector v
                 for i in range(h+1, m):
                     if A[i][k]:
-                        linear_combinations[i][1] = np.append(linear_combinations[i][1], linear_combinations[h][1])
+                        linear_combinations[i][1] = filter_array(np.append(linear_combinations[i][1], linear_combinations[h][1]))
                         A[i] = np.logical_xor(A[i], A[h]) # updating rows so that there are 0s under the pivot entry 
                 h += 1
                 k += 1
@@ -485,10 +485,10 @@ class QuadraticSieve:
 #Sieve = QuadraticSieve(100271 * 5009317)
 
 #Sieve = QuadraticSieve(10000019 * 1000003) # was working brute force with bad euler's criterion code
-Sieve = QuadraticSieve(310248241 * 383838383)
+#Sieve = QuadraticSieve(310248241 * 383838383)
 #Sieve = QuadraticSieve(16921456439215439701) # first test case
 
-# print(Sieve.find_prime_factor(tonelli=False))
+#print(Sieve.find_prime_factor(tonelli=True))
 
 #n = 100109 * 100271
 #n = 10000019 * 1000003
