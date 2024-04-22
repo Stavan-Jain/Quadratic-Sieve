@@ -238,6 +238,7 @@ class QuadraticSieve:
     def better_find_bsmooth(self, num_to_gen, tonelli=True, i=1):
         if tonelli == False:
             self.find_bsmooth(num_to_gen, tonelli, i)
+            return
         
         self.i = i
         sq = int(math.sqrt(self.n))
