@@ -258,19 +258,20 @@ class QuadraticSieve:
             current = time.time()
             for prime in self.tonelli_relations:
                 for count, relation in enumerate(self.tonelli_relations[prime][1:]):
+                    modulo = prime ** (count + 1)
                     for rel in relation:
                         index = 0
                         plus_start = self.modular_plus[prime][count]
                         minus_start = self.modular_minus[prime][count]
                         if plus_start > rel:
-                            plus_offset = rel - plus_start + (prime ** (count + 1))
+                            plus_offset = rel - plus_start + modulo
                         else:
                             plus_offset = rel - plus_start
 
                         if minus_start > rel:
                             minus_offset = minus_start - rel
                         else:
-                            minus_offset = minus_start - rel + (prime ** (count + 1))
+                            minus_offset = minus_start - rel + modulo
 
                         if plus_offset > minus_offset:
                             difference = plus_offset - minus_offset
@@ -278,14 +279,14 @@ class QuadraticSieve:
                             while index < limit:
                                 possible_plus[index] += self.tonelli_relations[prime][0]
                                 possible_minus[index - difference] += self.tonelli_relations[prime][0]
-                                index += prime ** (count + 1)
+                                index += modulo
                         else:
                             difference = minus_offset - plus_offset
                             index = minus_offset
                             while index < limit:
                                 possible_minus[index] += self.tonelli_relations[prime][0]
                                 possible_plus[index - difference] += self.tonelli_relations[prime][0]
-                                index += prime ** (count + 1)
+                                index += modulo
 
             self.tonelli_time += time.time() - current
             cutoff = 0.5 * math.log(self.n / 2) + math.log(starting_plus + limit - sq) - 1.6 * math.log(self.factor_base[-1])
@@ -293,11 +294,11 @@ class QuadraticSieve:
             candidates_p = []
             candidates_m = []
             for x in range(limit):
-                temp_p = starting_plus + x
-                temp_m = starting_minus - x
                 if possible_plus[x] > cutoff:
+                    temp_p = starting_plus + x
                     candidates_p.append(temp_p)
                 if possible_minus[x] > cutoff:
+                    temp_m = starting_minus - x
                     candidates_m.append(temp_m)   
 
             self.i = self.i + limit
@@ -466,7 +467,7 @@ class QuadraticSieve:
             self.factor_base = self.gen_primes(B)
         else:
             self.factor_base = [-1] + self.eulers_criterion(self.gen_primes(B))
-            self.generate_tonelli(1)
+            self.generate_tonelli(3)
         print(self.factor_base)
         num_to_gen = len(self.factor_base) + 5
         while len(ret) == 0:
@@ -486,15 +487,16 @@ class QuadraticSieve:
 #Sieve = QuadraticSieve(100109 * 386429)
 #Sieve = QuadraticSieve(100271 * 5009317)
 
-#Sieve = QuadraticSieve(10000019 * 1000003) # was working brute force with bad euler's criterion code
+#Sieve = QuadraticSieve(10000019 * 1000003)
 #Sieve = QuadraticSieve(310248241 * 383838383)
 #Sieve = QuadraticSieve(16921456439215439701) # first test case
 
 #print(Sieve.find_prime_factor(tonelli=True))
 
 n = 310248241 * 383838383
-#n = 10000019 * 1000003
+n = 10000019 * 1000003
 n = 2860486313 * 5915587277 #16921456439215439701
+n = 100123456789 * 1012346665879
 #n = 46839566299936919234246726809
 A = QuadraticSieve(n)
 
