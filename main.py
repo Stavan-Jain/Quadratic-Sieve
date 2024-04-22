@@ -242,6 +242,7 @@ class QuadraticSieve:
         self.i = i
         sq = int(math.sqrt(self.n))
         self.matrix = np.array([])
+        #limit = len(self.factor_base) ** 3
         limit = 10000
 
         while len(self.matrix) <= num_to_gen:
@@ -299,7 +300,7 @@ class QuadraticSieve:
             for candidate in candidates_p:
                 factored, factors = self.factor_with_base(self.factor_base, candidate ** 2 - self.n)
                 if factored == 1:
-                    print(f'%d %d %d %s' % (candidate, candidate ** 2 - self.n, factored, factors))
+                    #print(f'%d %d %d %s' % (candidate, candidate ** 2 - self.n, factored, factors))
                     if len(self.matrix) == 0:
                         self.matrix = np.array([factors])
                         self.bsmooth = np.array(candidate)
@@ -314,7 +315,7 @@ class QuadraticSieve:
                 factored, factors = self.factor_with_base(self.factor_base, value)
                 if factored == 1:
                     factors[0] = 1
-                    print(f'%d %d %d %s' % (candidate, value, factored, factors))
+                    #print(f'%d %d %d %s' % (candidate, value, factored, factors))
                     if len(self.matrix) == 0:
                         self.matrix = np.array([factors])
                         self.bsmooth = np.array(candidate)
@@ -461,8 +462,8 @@ class QuadraticSieve:
         else:
             self.factor_base = [-1] + self.eulers_criterion(self.gen_primes(B))
             self.generate_tonelli(2)
-        print(self.factor_base)
-        num_to_gen = len(self.factor_base) + 5
+        #print(self.factor_base)
+        num_to_gen = 1#len(self.factor_base) + 5
         while len(ret) == 0:
             self.better_find_bsmooth(num_to_gen, tonelli, self.i)
             A, C = self.find_congruent_squares(self.matrix, self.bsmooth)
@@ -481,13 +482,12 @@ class QuadraticSieve:
 #Sieve = QuadraticSieve(100271 * 5009317)
 #Sieve = QuadraticSieve(10000019 * 1000003)
 #Sieve = QuadraticSieve(310248241 * 383838383)
-#Sieve = QuadraticSieve(2860486313 * 5915587277)            # first test case - 16921456439215439701
-Sieve = QuadraticSieve(100123456789 * 1012346665879)
-#Sieve = QuadraticSieve(46839566299936919234246726809)      # second test case
+Sieve = QuadraticSieve(2860486313 * 5915587277)             # first test case - 16921456439215439701
+#Sieve = QuadraticSieve(100123456789 * 1012346665879)
+#Sieve = QuadraticSieve(46839566299936919234246726809)       # second test case
 
 current = time.time()
 res = Sieve.find_prime_factor(tonelli=True)
 end = time.time()
 print(res)
-#print(f'Tonelli took %f seconds' % (Sieve.tonelli_time))
 print(f'Total took %f seconds' % (end - current))
