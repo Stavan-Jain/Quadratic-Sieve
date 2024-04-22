@@ -255,40 +255,33 @@ class QuadraticSieve:
                 self.modular_minus.update({prime: [starting_minus % (prime ** x) for x in range(1, len(self.tonelli_relations[prime]))]})
             possible_plus = [0] * limit
             possible_minus = [0] * limit
-            current = time.time()
             for prime in self.tonelli_relations:
+                current_log = self.tonelli_relations[prime][0]
                 for count, relation in enumerate(self.tonelli_relations[prime][1:]):
                     modulo = prime ** (count + 1)
+                    plus_start = self.modular_plus[prime][count]
+                    minus_start = self.modular_minus[prime][count]
                     for rel in relation:
-                        index = 0
-                        plus_start = self.modular_plus[prime][count]
-                        minus_start = self.modular_minus[prime][count]
+                        plus_offset = rel - plus_start
                         if plus_start > rel:
-                            plus_offset = rel - plus_start + modulo
-                        else:
-                            plus_offset = rel - plus_start
+                            plus_offset += modulo
 
-                        if minus_start > rel:
-                            minus_offset = minus_start - rel
-                        else:
-                            minus_offset = minus_start - rel + modulo
+                        minus_offset = minus_start - rel
+                        if minus_start < rel:
+                            minus_offset += modulo
 
                         if plus_offset > minus_offset:
                             difference = plus_offset - minus_offset
-                            index = plus_offset
-                            while index < limit:
-                                possible_plus[index] += self.tonelli_relations[prime][0]
-                                possible_minus[index - difference] += self.tonelli_relations[prime][0]
-                                index += modulo
+                            while plus_offset < limit:
+                                possible_plus[plus_offset] += current_log
+                                possible_minus[plus_offset - difference] += current_log
+                                plus_offset += modulo
                         else:
                             difference = minus_offset - plus_offset
-                            index = minus_offset
-                            while index < limit:
-                                possible_minus[index] += self.tonelli_relations[prime][0]
-                                possible_plus[index - difference] += self.tonelli_relations[prime][0]
-                                index += modulo
-
-            self.tonelli_time += time.time() - current
+                            while minus_offset < limit:
+                                possible_minus[minus_offset] += current_log
+                                possible_plus[minus_offset - difference] += current_log
+                                minus_offset += modulo
             cutoff = 0.5 * math.log(self.n / 2) + math.log(starting_plus + limit - sq) - 1.6 * math.log(self.factor_base[-1])
             # From Silverman "The Multiple Polynomial Quadratic Sieve"
             candidates_p = []
@@ -306,7 +299,7 @@ class QuadraticSieve:
             for candidate in candidates_p:
                 factored, factors = self.factor_with_base(self.factor_base, candidate ** 2 - self.n)
                 if factored == 1:
-                    print(f'%d %d %d %s' % (candidate, candidate ** 2 - self.n, factored, factors))
+                    #print(f'%d %d %d %s' % (candidate, candidate ** 2 - self.n, factored, factors))
                     if len(self.matrix) == 0:
                         self.matrix = np.array([factors])
                         self.bsmooth = np.array(candidate)
@@ -321,7 +314,7 @@ class QuadraticSieve:
                 factored, factors = self.factor_with_base(self.factor_base, value)
                 if factored == 1:
                     factors[0] = 1
-                    print(f'%d %d %d %s' % (candidate, value, factored, factors))
+                    #print(f'%d %d %d %s' % (candidate, value, factored, factors))
                     if len(self.matrix) == 0:
                         self.matrix = np.array([factors])
                         self.bsmooth = np.array(candidate)
@@ -496,7 +489,7 @@ class QuadraticSieve:
 n = 310248241 * 383838383
 n = 10000019 * 1000003
 n = 2860486313 * 5915587277 #16921456439215439701
-n = 100123456789 * 1012346665879
+#n = 100123456789 * 1012346665879
 #n = 46839566299936919234246726809
 A = QuadraticSieve(n)
 
