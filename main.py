@@ -45,6 +45,7 @@ class QuadraticSieve:
         return primes
 
     # this is the brute force function to determine whether the target is b-smooth
+    # returns 1 and the list of factors if it is factorizable under the factor base, else returns -1
     def factor_with_base(self, base, target):
         temp = target
         factors = [0] * len(base)
@@ -58,7 +59,9 @@ class QuadraticSieve:
             temp = -1
         return temp, factors
 
-    # this function deals with the special case of p=2 for tonelli-shanks
+    # this function deals with the special case of p=2 for generating tonelli-shanks relations
+    # note the cases of 2^1, 2^2, and 2^3 have to be hard coded and then once 2^3 relations are generated
+    # all further relations can be iteratively generated from there
     def tonelli_2(self, square, prime, prime_power):
         if prime_power == 1:
             if square % prime == 1:
@@ -85,7 +88,7 @@ class QuadraticSieve:
         new_relations.sort()
         return new_relations
 
-    # this function uses the base tonelli-shanks relations to generate relations for powers of primes
+    # this function uses the base tonelli-shanks relations to generate relations for powers of odd primes
     def tonelli_repeated(self, square, prime, prime_power):
         old_mod = prime ** (prime_power - 1)
         new_relations = set()
@@ -98,8 +101,9 @@ class QuadraticSieve:
         new_relations.sort()
         return new_relations
 
-    # this function sends the case to tonelli_2 or tonelli_repeated if necessary
-    # else, the function does the tonelli-shanks algorithm
+    # this function is a wrapper for generating tonelli-shanks relations
+    # it sends the appropriate cases to tonelli_2 or tonelli_repeated
+    # else, the function does the base tonelli-shanks algorithm iteratively
     def tonelli_shanks(self, square, prime, prime_power=1):
         if prime == 2:
             return self.tonelli_2(square, prime, prime_power)
@@ -135,11 +139,12 @@ class QuadraticSieve:
             answer = final_sqrt
         return (answer, (-answer) % prime)
 
-    # this function computes powers modulo mod (quickly)            
+    # this function computes base ^ exponent modulo mod (quickly)            
     def fast_powers(self, base, exponent, mod):
         exponent = int(exponent)
         ret_val = 1
         while exponent > 0:
+            # check if power is still divisible by 2
             if (exponent & 1):
                 ret_val = (ret_val * base) % mod
                 exponent = exponent - 1
@@ -181,33 +186,7 @@ class QuadraticSieve:
             return (-1 * top_row[-2]) % mod
         return top_row[-2] % mod
 
-    # this wrapper uses the generated tonelli-relations and generates more when needed
-    def tonelli_wrapper(self, candidate, value):
-        current = math.log(candidate)
-        factors = [0] * len(self.factor_base)
-        for count, prime in enumerate(self.factor_base):
-            if prime not in self.tonelli_relations:
-                self.tonelli_relations.update({prime: [math.log(prime), self.tonelli_shanks(self.n, prime, 1)]})
-            power = 0
-            while power >= 0:
-                if len(self.tonelli_relations[prime]) < (power + 2):
-                    self.tonelli_relations[prime].append(self.tonelli_shanks(self.n, prime, power + 1))
-                if value % (prime ** (power + 1)) in self.tonelli_relations[prime][power + 1]:
-                    #print(f'found that %d ^ %d is a factor' % (prime, power + 1))
-                    #print(f'%s %s^%s %s' % (value, prime, (power + 1), self.tonelli_relations[prime][power + 1]))
-                    power += 1
-                    current = current - self.tonelli_relations[prime][0]
-                    factors[count] += 1
-                else:
-                    power = -1
-                if current < 0.001:
-                    power = -1
-        if current < 0.001:
-            return 1, factors
-        return -1, factors
-
-    # note tonelli only used for (sqrt(n)+k)^2 < 2n to keep consistent factor base
-    # this function finds a specified number of b-smooth numbers
+    # this function finds b-smooth numbers by brute force for small values of n
     def find_bsmooth(self, num_to_gen, tonelli=True, i=1):
         sq = int(math.sqrt(self.n))
         self.i = i
@@ -216,15 +195,9 @@ class QuadraticSieve:
         while len(self.matrix) <= num_to_gen:
             temp = sq + self.i
             current = ((temp)**2) % self.n
-            if tonelli and (temp * temp) < 2 * self.n:
-                factored, factors = self.tonelli_wrapper(current, temp)
-            else:
-                if self.tonelli:
-                    print(f'Switching to Brute Force Solving %s' % temp)
-                    self.tonelli = False
-                factored, factors = self.factor_with_base(self.factor_base, current)
+            factored, factors = self.factor_with_base(self.factor_base, current)
             if factored == 1:
-                print(f'%d %d %d %s' % (temp, current, factored, factors))
+                #print(f'%d %d %d %s' % (temp, current, factored, factors))
                 if len(self.matrix) == 0:
                     self.matrix = np.array([factors])
                     self.bsmooth = np.array(temp)
@@ -234,6 +207,7 @@ class QuadraticSieve:
             self.i += 1
         return 
     
+    # this function uses the quadratic sieve with tonelli-shanks relations to find b-smooth numbers
     def better_find_bsmooth(self, num_to_gen, tonelli=True, i=1):
         if tonelli == False:
             self.find_bsmooth(num_to_gen, tonelli, i)
@@ -242,7 +216,6 @@ class QuadraticSieve:
         self.i = i
         sq = int(math.sqrt(self.n))
         self.matrix = np.array([])
-        #limit = len(self.factor_base) ** 3
         limit = 10000
 
         while len(self.matrix) <= num_to_gen:
@@ -250,11 +223,15 @@ class QuadraticSieve:
             starting_minus = sq - self.i
             self.modular_plus = dict({})
             self.modular_minus = dict({})
+            # this loop finds the modular relations of the starting positive and negative values of this sieve iteration over the factor base
             for prime in self.tonelli_relations:
                 self.modular_plus.update({prime: [starting_plus % (prime ** x) for x in range(1, len(self.tonelli_relations[prime]))]})
                 self.modular_minus.update({prime: [starting_minus % (prime ** x) for x in range(1, len(self.tonelli_relations[prime]))]})
+            # these arrays are the "sieve" arrays
             possible_plus = [0] * limit
             possible_minus = [0] * limit
+            # for every prime in factor base and then for every power of the prime being considered, 
+            # iterate through the sieves adding log(p) where a value is divisible by p or any power of p
             for prime in self.tonelli_relations:
                 current_log = self.tonelli_relations[prime][0]
                 for count, relation in enumerate(self.tonelli_relations[prime][1:]):
@@ -283,10 +260,12 @@ class QuadraticSieve:
                                 possible_plus[minus_offset - difference] += current_log
                                 minus_offset += modulo
             
+            # cutoff for determining whether a value should be a candidate B-smooth number
             cutoff = 0.5 * math.log(self.n / 2) + math.log(starting_plus + limit - sq) - 1.6 * math.log(self.factor_base[-1])
             # From Silverman "The Multiple Polynomial Quadratic Sieve"
             candidates_p = []
             candidates_m = []
+            # this loop finds candidate indices and then determines what the value corresponding to that index is
             for x in range(limit):
                 if possible_plus[x] > cutoff:
                     temp_p = starting_plus + x
@@ -296,7 +275,7 @@ class QuadraticSieve:
                     candidates_m.append(temp_m)   
 
             self.i = self.i + limit
-
+            # the final two loops here iterate through all candidates and determine whether they actually are B-smooth numbers
             for candidate in candidates_p:
                 factored, factors = self.factor_with_base(self.factor_base, candidate ** 2 - self.n)
                 if factored == 1:
@@ -445,6 +424,7 @@ class QuadraticSieve:
 
         return C, B 
 
+    # do the basic principle to attempt to factor n
     def basic_principle(self, a, b):
         #print(type(a), type(b))
         if((a-b)%self.n==0 or (a+b)%self.n==0):
@@ -456,14 +436,19 @@ class QuadraticSieve:
     def find_prime_factor(self, tonelli=True):
         ret = []
         B = self.get_B()
+        # in the case n is small, brute force is preferable
         if self.n < 100000000000 or not tonelli:
             tonelli = False
             self.factor_base = self.gen_primes(B)
+        # else, add -1 to the factor base and generate the tonelli-shanks relations (here up to p^2) which will be used later
         else:
             self.factor_base = [-1] + self.eulers_criterion(self.gen_primes(B))
             self.generate_tonelli(2)
-        #print(self.factor_base)
-        num_to_gen = 1#len(self.factor_base) + 5
+        # sets the number of B-smooth numbers to generate at a time
+        # low values are preferable to linear dependencies can be checked when B-smooth numbers are generates
+        num_to_gen = 1
+        # this loop generates B-smooth numbers, checks for dependencies, and attempts to factor n 
+        # it loops until n is factored
         while len(ret) == 0:
             self.better_find_bsmooth(num_to_gen, tonelli, self.i)
             A, C = self.find_congruent_squares(self.matrix, self.bsmooth)
@@ -482,9 +467,17 @@ class QuadraticSieve:
 #Sieve = QuadraticSieve(100271 * 5009317)
 #Sieve = QuadraticSieve(10000019 * 1000003)
 #Sieve = QuadraticSieve(310248241 * 383838383)
-Sieve = QuadraticSieve(2860486313 * 5915587277)             # first test case - 16921456439215439701
+#Sieve = QuadraticSieve(2860486313 * 5915587277)             # first test case - 16921456439215439701
 #Sieve = QuadraticSieve(100123456789 * 1012346665879)
 #Sieve = QuadraticSieve(46839566299936919234246726809)       # second test case
+
+# Sieve = QuadraticSieve(29223973)
+# Sieve = QuadraticSieve(7067947793)
+# Sieve = QuadraticSieve(736055622283)
+Sieve = QuadraticSieve(5479839591439397)
+# Sieve = QuadraticSieve(92905709270744788219)
+# Sieve = QuadraticSieve()
+# Sieve = QuadraticSieve()
 
 current = time.time()
 res = Sieve.find_prime_factor(tonelli=True)
